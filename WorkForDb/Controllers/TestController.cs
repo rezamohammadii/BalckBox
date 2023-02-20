@@ -9,8 +9,8 @@ namespace WorkForDb.Controllers
     [ApiController]
     public class TestController : ControllerBase
     {
-        private readonly DatabaseContext db;
-        public TestController(DatabaseContext _db)
+        private readonly MariaDbContext db;
+        public TestController(MariaDbContext _db)
         {
             db = _db;
         }
@@ -25,6 +25,7 @@ namespace WorkForDb.Controllers
                 Family = "mohammadi",
                 Name = "reza"
             };
+            
             db.Students.Add(st);
             db.SaveChanges();
 

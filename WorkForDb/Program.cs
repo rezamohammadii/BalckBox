@@ -1,5 +1,6 @@
 using WorkForDb.Database.Context;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -11,12 +12,14 @@ builder.Services.AddSwaggerGen();
 
 //builder.Host.ConfigureServices((opt, service) =>
 //{
-//    service.AddDbContextFactory<DatabaseContext>(options =>
-//    {
-//        options.UseSqlServer(opt.Configuration.GetSection("mssqlDbString").Value);
-//    });
-//});
-using var context = new DatabaseContext();
+var conn = builder.Configuration.GetSection("mssqlDbString").Value;
+
+builder.Services.AddDbContext<MariaDbContext>(options => options
+       .UseMySql(conn,ServerVersion.AutoDetect(conn)));
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+//builder.Services.AddScoped<MariaDbContext>();
+using var context = new MariaDbContext();
 
 var app = builder.Build();
 
@@ -27,12 +30,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 bool createDb = builder.Configuration.GetValue<bool>("createDb");
-context.Database.CloseConnection();
-
 if (createDb)
 {
     context.Database.EnsureDeleted();
-    context.Database.EnsureCreated();
+    context.Database.Migrate();
 }
 else
 {
