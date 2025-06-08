@@ -1,8 +1,8 @@
-namespace WorkForDb
+namespace BlackBox.Database
 {
     public class WeatherForecast
     {
-        public DateTime Date { get; set; }
+        public DateOnly Date { get; set; }
 
         public int TemperatureC { get; set; }
 
