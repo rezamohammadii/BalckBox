@@ -1,6 +1,7 @@
 ﻿using BlackBox.Database.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -10,6 +11,11 @@ namespace BlackBox.Database.Controllers
     [ApiController]
     public class TestController : ControllerBase
     {
+        private readonly MyDbContext db;
+        public TestController(MyDbContext db)
+        {
+            this.db = db;
+        }
         // GET: api/<TestController>
         [HttpGet]
         public  IEnumerable<string> Get()
@@ -22,12 +28,16 @@ namespace BlackBox.Database.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            using (var db = new MyDbContext())
-            {
-                var data = await db.Products.FromSqlRaw("SELECT * FROM Products WITH (NOLOCK)")
-                    .FirstOrDefaultAsync(x => x.Id == id);
+            using var tx = await db.Database.BeginTransactionAsync();
+            var data = await db.Products.FindAsync(id);
+            data.Name = "value";
+
+
+            var data2 = await db.Products.FromSqlRaw("SELECT * FROM Products WITH (NOLOCK) WHERE ID = 1")
+                    .FirstOrDefaultAsync();
+                
                 return Ok(data);
-            }
+            
             
         }
 
@@ -41,13 +51,10 @@ namespace BlackBox.Database.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] string value)
         {
-            using (var db = new MyDbContext())
-            {
-                var data = await db.Products.FindAsync(id);
-                data.Name = value;
-
-                return Ok(data);
-            }
+          
+                
+                return Ok();
+            
         }
 
         // DELETE api/<TestController>/5
